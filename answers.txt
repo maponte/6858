@@ -1,1 +1,35 @@
-## Place your answers here.
+Exercise 2:
+
+exploit-2a.py triggers the bug in http.c:105, the call to url_decode within http_request_line. It sends a request with a path larger than 2048, overflowing the reqpath buffer on the stack. It crashes the zookd process.
+
+exploit-2b.py triggers the bug in http.c:255, where strcat will overflow pn with name if name is longer than 1024 bytes. In this case I send a request with a path longer than 1024 bytes, but less than 2048 bytes to avoid triggering another bug which will cause a segmentation violation earlier in the process. The buffer overflow overwrites the pointer handler, which I confirmed by checking the value of handler right before it is called in http.c:269. The process zookfs dies with a segmentation violation at this point, and the handler value is now the value I overflowed into it.
+
+Exercise 3:
+
+My exploit builds off of exploit-2a.py which relies on the bug at http.c:105. Namely, url_decode obliviously overflows reqpath and smashes the stack. I used the beginning of the request path to store the shell code in reqpath, and filled the rest with the reqpath pointer, overwriting the saved ip to point to the start of the shell code. 
+
+The bug at http.c:159, also a call to url_decode, should be exploitable in the same manner. The shellcode string is pretty small and will fit in this smaller buffer too.
+
+The bug at http.c:95 doesn't seem obviously exploitable in the same manner, at least not whenn called by process_client, because the env array it is called with is not stored on the stack due to the static declaration.
+
+Bug at http.c:255 was exploited in exploit-2b.py. Here, we have to be a little trickier and overwrite the function pointer of the function to be called later on in http_serve, (namely, handler) but then we can store the shellcode in the vulnerable buffer (pn) as usual.
+
+Finally, the bug at http.c:317 should be exploitable in the manner used in exploit-3.py, but I'm not sure if it is being used in this application right now.
+
+Exercise 5:
+
+[http.c, http_request_headers]
+
+You can overwrite the "REQUEST_URI" environment variable somewhat sneakily, by explicitly supplying a "REQUEST_URI:<foo>" header in the HTTP requests you send to the server. We can get the server to dispatch the request to a service that wouldn't normally handle it by deliberately sending a request with distinct path and REQUEST_URI values. More generally, the server really ought to be careful using the headers to arbitrarily set environment variables, since this gives an adversary way more input control than they really need.
+
+The input can be reasonably long (512 bytes). There's more than enough room for some shell code or injection. I used this space to store the string for the path to grades.txt in my exercise-4b exploit. You have to be careful that the injected code/data is robust against being url-decoded. Also, if you aren't careful about the order of your headers you may unintentionally break functionality because of the process that the server uses to parse the http headers. Namely, if you have a null byte the parser will stop reading in further headers, so if you're holding a string here, say to use as an argument to a system call for unlinking a file, you have to consider the placement, and it's probably a good idea to put it as the final header in your request. 
+
+[http.c, http_serve]
+
+Something which would be interesting to exploit is the fact that you can overwrite the file descriptor argument by overflowing the pn buffer. In my exercise-4b exploit I did not make very clever use of this; I only overwrote it to use that space as an argument to the unlink call. With some more knowledge of whatever file descriptors the server's process-owner has access to we might be able to corrupt or read other files. This is because the code implicitly assumes that the user cannot arbitrarily influence the fd descriptor.
+
+Protecting the vulnerable buffer 'pn' in http_serve would guard against this as well. The attacker may be limited in their knowledge of the file descriptors accessible by the process, but fuzzing on this input could be disruptive.
+
+Exercise 6:
+
+Almost every buffer that I discovered earlier that I think I can find an exploit for is protected by fixing url_decode, which did no bounds checking on the destination buffer. After adding a bounds check, I had to modify the parameter list to pass in the bound, and modify the instances of calls to url_decode, and modify everything that would have called those functions if they passed in the relevant buffer, so that THOSE functions would also pass the relevant bound.

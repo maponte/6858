@@ -16,6 +16,8 @@ static regex_t svcurls[MAX_SERVICES];
 
 static void process_client(int);
 
+static const int REQBUFFLEN = 2048
+
 int main(int argc, char **argv)
 {
     int fd, sockfd = -1, i;
@@ -70,12 +72,12 @@ static void process_client(int fd)
 {
     static char env[8192];  /* static variables are not on the stack */
     static size_t env_len;
-    char reqpath[2048];
+    char reqpath[REQBUFFLEN];
     const char *errmsg;
     int i;
 
     /* get the request line */
-    if ((errmsg = http_request_line(fd, reqpath, env, &env_len)))
+    if ((errmsg = http_request_line(fd, reqpath, REQBUFFLEN, env, &env_len)))
         return http_err(fd, 500, "http_request_line: %s", errmsg);
 
     for (i = 0; i < nsvcs; ++i)
