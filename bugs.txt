@@ -3,15 +3,27 @@
 # desc
 #
 
-[zookd.c:1612]
-description goes here. for example, the 'buf' variable can be
-overwritten by the 'msg' variable because ...
+[http.c:105]
+It's actually not clear if this is url_decode's fault, because http_request_line doesn't even get the size of the buffer reqpath, but reqpath overflows in url_decode if you send a large request, overwriting fd in send_req.
 
-    <paste offending line(s) of code here>
+    url_decode(reqpath, sp1);
 
-[http.c:1512]
-another description.
+[http.c:159]
+Very similar to the previously mentioned bug, url_decode will overflow the 512 byte buffer, value, if any request header has a value long enough (with no premature \0's).
 
-    <paste offending line(s) of code here>
+    url_decode(value, sp);
 
-# many more come here
+[http.c:95]
+The buffer env can be overflowed by 16 bytes due to an overlooked issue in the allocation of the env versus the buf variables. They are both 8192 bytes, but the sprintf prepends "SERVER_PROTOCOL=" which may let us write past the 8192 bytes allocated.
+
+    envp += sprintf(envp, "SERVER_PROTOCOL=%s", sp2) + 1;
+
+[http.c:255]
+pn is a 1024 byte buffer. strcat is called with name as source, which is not checked for length. name is supplied by the request uri, so it can overflow pn.
+
+    strcat(pn, name);
+
+[http.c:317]
+dir_join does no checking on the length of either of its arguments, which we might exploit to overflow dir if dirname is long enough.
+
+    strcpy(dst, dirname);
