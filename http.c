@@ -61,7 +61,7 @@ int http_read_line(int fd, char *buf, size_t size)
     return -1;
 }
 
-const char *http_request_line(int fd, char *reqpath, reqbufflen, char *env, size_t *env_len)
+const char *http_request_line(int fd, char *reqpath, char *env, size_t *env_len)
 {
     static char buf[8192];      /* static variables are not on the stack */
     char *sp1, *sp2, *qp, *envp = env;
@@ -102,7 +102,7 @@ const char *http_request_line(int fd, char *reqpath, reqbufflen, char *env, size
     }
 
     /* decode URL escape sequences in the requested path into reqpath */
-    url_decode(reqpath, reqbufflen, sp1);
+    url_decode(reqpath, sp1);
 
     envp += sprintf(envp, "REQUEST_URI=%s", reqpath) + 1;
 
@@ -117,8 +117,7 @@ const char *http_request_headers(int fd)
 {
     static char buf[8192];      /* static variables are not on the stack */
     int i;
-    static const int vallen = 512
-    char value[vallen];
+    char value[512];
     char envvar[512];
 
     /* For lab 2: don't remove this line. */
@@ -157,7 +156,7 @@ const char *http_request_headers(int fd)
         }
 
         /* Decode URL escape sequences in the value */
-        url_decode(value, vallen, sp);
+        url_decode(value, sp);
 
         /* Store header in env. variable for application code */
         /* Some special headers don't use the HTTP_ prefix. */
@@ -435,9 +434,9 @@ void http_serve_executable(int fd, const char *pn)
     }
 }
 
-void url_decode(char *dst, dst_space, const char *src)
+void url_decode(char *dst, const char *src)
 {
-    for (int i=0;i<dst_space;i++)
+    for (;;)
     {
         if (src[0] == '%' && src[1] && src[2])
         {
@@ -462,7 +461,7 @@ void url_decode(char *dst, dst_space, const char *src)
             if (*dst == '\0')
                 break;
         }
-	
+
         dst++;
     }
 }
