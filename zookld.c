@@ -167,6 +167,9 @@ pid_t launch_svc(CONF *conf, const char *name)
     if ((dir = NCONF_get_string(conf, name, "dir")))
     {
         /* chroot into dir */
+	chdir(dir);
+	chroot(dir);
+	    /* close file descriptors (like stdin stdout)*/
     }
 
     signal(SIGCHLD, SIG_DFL);
