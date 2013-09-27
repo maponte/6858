@@ -2,7 +2,7 @@ ASFLAGS := -m32
 CFLAGS  := -m32 -g -std=c99 -Wall -Werror -D_GNU_SOURCE
 LDFLAGS := -m32
 LDLIBS  := -lcrypto
-PROGS   := zookld zookfs zookd
+PROGS   := zookld zookfs zookd 
 
 all: $(PROGS)
 .PHONY: all

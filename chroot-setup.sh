@@ -77,8 +77,8 @@ python /jail/zoobar/zoodb.py init-person
 python /jail/zoobar/zoodb.py init-transfer
 
 #set_perms uid:gid perms path
-set_perms 61012:61012 770 /jail/zoobar/index.cgi
-#set_perms 61012:61012 660 /jail/zoobar/db/person/person.db
-#set_perms 61012:61012 660 /jail/zoobar/db/transfer/transfer.db
 chown -R 61012:61012 /jail/zoobar/db
 chmod -R 770 /jail/zoobar/db
+set_perms 61012:61012 660 /jail/zoobar/db/person/person.db
+set_perms 61012:61012 660 /jail/zoobar/db/transfer/transfer.db
+set_perms 123:456 550 /jail/zoobar/index.cgi
