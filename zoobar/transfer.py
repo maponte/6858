@@ -12,9 +12,10 @@ def transfer():
     warning = None
     try:
         if 'recipient' in request.form:
+            token = g.user.token
             zoobars = eval(request.form['zoobars'])
             bankclient.transfer(g.user.person.username,
-                          request.form['recipient'], zoobars)
+                          request.form['recipient'], zoobars, token)
             warning = "Sent %d zoobars" % zoobars
     except (KeyError, ValueError, AttributeError) as e:
         traceback.print_exc()

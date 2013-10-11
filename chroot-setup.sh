@@ -63,7 +63,7 @@ mkdir -p /jail/usr/share/zoneinfo
 cp -r /usr/share/zoneinfo/America /jail/usr/share/zoneinfo/
 
 create_socket_dir /jail/echosvc 61010:61010 755
-create_socket_dir /jail/authsvc 61014:61111 750
+create_socket_dir /jail/authsvc 61014:61111 755
 create_socket_dir /jail/banksvc 61015:61112 755
 
 mkdir -p /jail/tmp
