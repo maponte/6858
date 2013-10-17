@@ -28,7 +28,7 @@ class ProfileAPIServer(rpclib.RpcServer):
 
     def rpc_get_xfers(self, username):
         xfers = []
-        for xfer in bank.get_log(username):
+        for xfer in bankclient.get_log(username):
             xfers.append({ 'sender': xfer.sender,
                            'recipient': xfer.recipient,
                            'amount': xfer.amount,
@@ -43,11 +43,12 @@ class ProfileAPIServer(rpclib.RpcServer):
             return None
         return { 'username': p.username,
                  'profile': p.profile,
-                 'zoobars': bank.balance(username),
+                 'zoobars': bankclient.balance(username),
                }
 
     def rpc_xfer(self, target, zoobars):
-        bank.transfer(self.user, target, zoobars)
+        token = self.user.token
+        bankclient.transfer(self.user, target, zoobars, token)
 
 def run_profile(pcode, profile_api_client):
     globals = {'api': profile_api_client}
@@ -55,7 +56,7 @@ def run_profile(pcode, profile_api_client):
 
 class ProfileServer(rpclib.RpcServer):
     def rpc_run(self, pcode, user, visitor):
-        uid = 0
+        uid = 61200
 
         userdir = '/tmp'
 

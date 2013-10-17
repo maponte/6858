@@ -65,6 +65,7 @@ cp -r /usr/share/zoneinfo/America /jail/usr/share/zoneinfo/
 create_socket_dir /jail/echosvc 61010:61010 755
 create_socket_dir /jail/authsvc 61014:61111 755
 create_socket_dir /jail/banksvc 61015:61112 755
+create_socket_dir /jail/profilesvc 61200:61200 755
 
 mkdir -p /jail/tmp
 chmod a+rwxt /jail/tmp
@@ -96,4 +97,3 @@ chown -R 61016:61016 /jail/zoobar/media
 chown -R 61016:61016 /jail/zoobar/templates
 chown 0:61114 /jail/zoobar/index.cgi
 chmod 755 /jail/zoobar/index.cgi
-#chmod -R 700 /jail/zoobar/db/cred/cred.db
