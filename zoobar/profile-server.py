@@ -20,8 +20,15 @@ import errno
 
 class ProfileAPIServer(rpclib.RpcServer):
     def __init__(self, user, visitor):
+        def get_token(username):
+            cred_db = zoodb.cred_setup()
+            c = cred_db.query(zoodb.Cred).get(username)
+            return c.token
         self.user = user
         self.visitor = visitor
+        self.token = get_token(user)
+        os.setresgid(61200,61200,61200)
+        os.setresuid(61200,61200,61200)
 
     def rpc_get_self(self):
         return self.user
@@ -43,12 +50,7 @@ class ProfileAPIServer(rpclib.RpcServer):
                }
 
     def rpc_xfer(self, target, zoobars):
-        def get_token(username):
-            cred_db = zoodb.cred_setup()
-            c = cred_db.query(zoodb.Cred).get(username)
-            return c.token
-        token = get_token(self.user)
-        bankclient.transfer(self.user, target, zoobars, token)
+        bankclient.transfer(self.user, target, zoobars, self.token)
 
 def run_profile(pcode, profile_api_client):
     globals = {'api': profile_api_client}
