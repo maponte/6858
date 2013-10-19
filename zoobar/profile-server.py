@@ -8,6 +8,8 @@ import urllib
 import socket
 import bankclient
 import zoodb
+import base64
+import hashlib
 #import authclient
 
 from debug import *
@@ -56,8 +58,15 @@ class ProfileServer(rpclib.RpcServer):
     def rpc_run(self, pcode, user, visitor):
         uid = 61200
 
-        userdir = '/tmp'
-
+        #userdir = '/tmp'
+        user_dirid = base64.b32encode(hashlib.sha1(user).digest())
+        userdir = '/tmp/'+user_dirid
+        try:
+            os.mkdir(userdir, 0700)
+            os.chown(userdir, uid, uid)
+        except OSError:
+            pass #probably already created directory
+        
         (sa, sb) = socket.socketpair(socket.AF_UNIX, socket.SOCK_STREAM, 0)
         pid = os.fork()
         if pid == 0:
